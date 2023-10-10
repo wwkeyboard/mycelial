@@ -26,6 +26,7 @@ use sqlx::{sqlite::SqliteConnectOptions, ConnectOptions, Row, SqliteConnection};
 use std::{net::SocketAddr, path::Path};
 use std::{str::FromStr, sync::Arc};
 use tokio::sync::Mutex;
+use tower_http::cors::{Any, CorsLayer };
 use uuid::Uuid;
 
 mod error;
@@ -602,11 +603,20 @@ async fn main() -> anyhow::Result<()> {
 
     let assets = Router::new().fallback(assets);
 
-    let router = Router::new()
+    let mut router = Router::new()
         .merge(api)
         .merge(assets)
         .layer(middleware::from_fn_with_state(state.clone(), basic_auth))
         .layer(middleware::from_fn(log_middleware));
+
+    if cfg!(debug_assertions) {
+        router = router.layer(
+            CorsLayer::new()
+                .allow_origin(Any)
+                .allow_headers(Any)
+                .allow_methods([Method::GET, Method::POST, Method::PUT, Method::DELETE]),
+        )
+    }
 
     let addr: SocketAddr = cli.listen_addr.as_str().parse()?;
     Server::bind(&addr)
