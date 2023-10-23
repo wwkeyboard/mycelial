@@ -4,17 +4,16 @@
 use crate::{Message, StdError};
 use futures::{FutureExt, Sink, Stream, StreamExt};
 use rdkafka::message::OwnedMessage;
-use rdkafka::producer::FutureRecord;
-use rdkafka::util::Timeout;
+use rdkafka::producer::BaseRecord;
 use rdkafka::Message as KafkaMessage;
-use rdkafka::{error::KafkaError, producer::FutureProducer, ClientConfig};
+use rdkafka::{error::KafkaError, producer::BaseProducer, ClientConfig};
 use section::{Command, Section, SectionChannel};
 use std::pin::{pin, Pin};
 
 use std::future::Future;
 
 pub struct Kafka {
-    producer: FutureProducer,
+    producer: BaseProducer,
     topic: String,
 }
 
@@ -60,11 +59,11 @@ impl Kafka {
                                     None => Err("payload is none")?,
                              };
 
-                            let record = FutureRecord::to(self.topic.as_str())
+                            let record = BaseRecord::to(self.topic.as_str())
                                 .payload(p)
                                 .key(origin.as_bytes());
 
-                            if self.producer.send(record, Timeout::Never).await.is_err() {
+                            if self.producer.send(record).is_err() {
                                 return Ok(())
                             }
 

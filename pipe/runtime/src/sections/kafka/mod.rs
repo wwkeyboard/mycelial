@@ -11,7 +11,7 @@ pub struct OwnedMessageNewType(OwnedMessage);
 
 impl From<&RecordBatch> for OwnedMessageNewType {
     fn from(arrow_rb: &RecordBatch) -> Self {
-        println!("arrow_rb: {:?}", arrow_rb);
+        // println!("arrow_rb: {:?}", arrow_rb);
         let buf = Vec::new();
         let mut writer = arrow::json::LineDelimitedWriter::new(buf);
         // todo:  this couldn't handle a "binary" column type
